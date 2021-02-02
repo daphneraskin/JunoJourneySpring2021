@@ -1,4 +1,36 @@
-Just navigating to a page is not very useful. What we'd really like to do is to interact with the pages, or more specifically the HTML elements within a page. To do this, WebDriver offers 8 ways to find elements. 
+Selenium Basics: Locating Elements Lesson
+
+To find one element: 
+find_element_by_id
+find_element_by_name
+find_element_by_xpath
+find_element_by_link_text
+find_element_by_partial_link_text
+find_element_by_tag_name
+find_element_by_class_name
+find_element_by_css_selector
+
+To find multiple elements (these methods will return a list):
+find_elements_by_name
+find_elements_by_xpath
+find_elements_by_link_text
+find_elements_by_partial_link_text
+find_elements_by_tag_name
+find_elements_by_class_name
+find_elements_by_css_selector
+
+There are an additional 2 private methods (as opposed to the public methods above), which can be used for locating page elements:
+find_element()
+find_elements()
+
+Example usage of the private methods:
+from selenium.webdriver.common.by import By
+driver.find_element(By.XPATH, '//button[text()="Some text"]')
+driver.find_elements(By.XPATH, '//button')
+
+--------------
+
+Just navigating to a page is not very useful. What we want to do is  interact with the pages, or more specifically the HTML elements within a page. To do this, WebDriver offers 8 ways to find elements. 
 
 There are various strategies to locate elements in a page. You can use the most appropriate one for your case (using the HTML of the chosen element): 
 Here's some example HTML page source: 
@@ -15,6 +47,7 @@ Here's some example HTML page source:
 <html>
 
 To demonstrate how to use the 8 locator techniques, let's use the above as an example.
+*Remember, for most of these indicators, the first element with the given attribute will be returned. If no element has the matching attribute, NoSuchElementException will be raised*
 
 1) find_element_by_id 
     Example: if page source says that <form id = "loginForm">, you can locate using
@@ -42,39 +75,83 @@ To demonstrate how to use the 8 locator techniques, let's use the above as an ex
       C) The form element with attribute 'id' set to 'loginForm'
          login_form = driver.find_element_by_xpath(login_form = driver.find_element_by_xpath("//form[@id='loginForm']")
     
+    The username element can be located using different xpaths as such: 
+      A) First form element with an input child element with 'name' set to 'username'
+         username = driver.find_element_by_xpath("//form[input/@name='username']")
+      B) First input child element of the form element with attribute 'id' set to 'loginForm'
+         username = driver.find_element_by_xpath("//form[@id='loginForm']/input[1]")
+      C) First input element with attribute 'name' set to 'username'
+        username = driver.find_element_by_xpath("//input[@name='username']")
     
-4) find_element_by_link_text
+    The "Clear" button element can be located using different xpaths as such:
+      A) Input with attribute 'name' set to 'continue' and attribute 'type' set to 'button'
+         clear_button = driver.find_element_by_xpath("//input[@name='continue'][@type='button']")
+      B) Fourth input child element of the form element with attribute 'id' set to 'loginForm'
+         clear_button = driver.find_element_by_xpath("//form[@id='loginForm']/input[4]")
+    
+    There are a couple of very useful Add-ons that can assist in discoving the XPath of an element: 
+    xPath Finder: https://addons.mozilla.org/en-US/firefox/addon/xpath_finder/
+    xPathHelper: https://chrome.google.com/webstore/detail/xpath-helper/hgimnogjllphhhkhlmebbmlgjoejdpjl
+    
+4) find_element_by_link_text AND 5) find_element_by_partial_link_text
+   Use this when you know the link text used within an anchor tag
+   ------> Anchor Tag: 
+           An HTML tag used to define the beginning and end of a hyptertext link
+           Example html anchor tag syntax: 
+           <a href = "........"> Link Text </a>
 
-5) find_element_by_partial_link_text
+   Example page source: 
+   <html>
+    <body>
+     <p>Are you sure you want to do this?</p>
+     <a href="continue.html">Continue</a>
+     <a href="cancel.html">Cancel</a>
+   </body>
+   <html>
+
+   The continue.html link can be located like this: 
+   continue_link = driver.find_element_by_link_text('Continue')
+   continue_link = driver.find_element_by_partial_link_text('Conti')
 
 6) find_element_by_tag_name
+   Use this when you want to locate an element by tag name
+   
+   Example page source: 
+   <html>
+     <body>
+       <h1>Welcome</h1>
+       <p>Site content goes here.</p>
+   </body>
+   <html>
+   
+   The heading(h1) element can be located like this:
+   heading1 = driver.find_element_by_tag_name('h1')
 
 7) find_element_by_class_name
+   Use this when you want to locate an element by class name. 
+   
+   Example page source:    
+   <html>
+    <body>
+     <p class = "content">Site content goes here.</p>
+   </body>
+   <html>  
+   
+   The 'p' element can be located like this: 
+   content = driver.find_element_by_class_name('content')
+
 
 8) find_element_by_css_selector
-
-For example, given an element as defined by 
-   <input type = "text" name = "passwd" id= "passwd-id" />, you can find it using any of: 
-element = driver.find_element_by_id("passwd-id")
-element = driver.find_element_by_name("passwd")
-element = driver.find_element_by_xpath("//input[@id='passwd-id']")
-element = driver.find_element_by_css_selector("input#passwd-id")
-
-To find multiple elements (these methods will return a list):
-find_elements_by_name
-find_elements_by_xpath
-find_elements_by_link_text
-find_elements_by_partial_link_text
-find_elements_by_tag_name
-find_elements_by_class_name
-find_elements_by_css_selector
-
-There are an additional 2 private methods (as opposed to the public methods above), which can be used for locating page elements:
-find_element()
-find_elements()
-
-Example usage of the private methods:
-from selenium.webdriver.common.by import By
-
-driver.find_element(By.XPATH, '//button[text()="Some text"]')
-driver.find_elements(By.XPATH, '//button')
+   Use this when you want to locate an element using CSS selector syntax
+   
+   Example page source: 
+   <html>
+    <body>
+     <p class = "content">Site content goes here.</p>
+   </body>
+   <html> 
+   
+   The 'p' element can be located like this: 
+   content = driver.find_element_by_css_selector('p.content')
+   
+----------------------
