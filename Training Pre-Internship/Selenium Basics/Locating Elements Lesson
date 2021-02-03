@@ -1,5 +1,8 @@
-Selenium Basics: Locating Elements Lesson
+Selenium Basics Tutorial: selenium-python.readthedocs.io
+Notes taken from the online documentation. 
 
+I. Locating Elements Lesson
+a. Part One: Introduction
 To find one element: 
 find_element_by_id
 find_element_by_name
@@ -28,7 +31,7 @@ from selenium.webdriver.common.by import By
 driver.find_element(By.XPATH, '//button[text()="Some text"]')
 driver.find_elements(By.XPATH, '//button')
 
---------------
+b. In-Depth Explanation of 8 Element Locator Techniques
 
 Just navigating to a page is not very useful. What we want to do is  interact with the pages, or more specifically the HTML elements within a page. To do this, WebDriver offers 8 ways to find elements. 
 
@@ -154,4 +157,182 @@ To demonstrate how to use the 8 locator techniques, let's use the above as an ex
    The 'p' element can be located like this: 
    content = driver.find_element_by_css_selector('p.content')
    
-----------------------
+II. Waits Lesson
+a. Introduction
+
+These days, most web applications use AJAX techniques which means that elements within the page may load at different time intervals. This makes locating elements potentially difficult: if an element is not yet present in the DOM, a locate function will raise an ElementNotVisibleException exception. 
+Waits solve this problem. Waits provide time between actions performed to load elements before they can be located.
+
+2 Kinds of Waits: 
+  1) Explicit Waits
+     Code you define for a certain condition to occur before proceeding further in your code.
+     a. time.sleep() is an extreme example, which sets an exact time period to wait
+     b. WebDriverWait, in combination with ExpectedCondition, is one way to make your code wait for only as long as required. The below code will make Selenium wait for a max of 10 seconds for an element matching the given criteria to be found. If not element is found, a TimeoutException is thrown. By default, WebDriverWait calls the ExpectedCondition every 500 milliseconds until it returns success. ExpectedCondition will return "true" in case of success or "not null" if it fails to locate an element.
+         
+         Example Code: 
+         from selenium import webdriver
+         from selenium.webdriver.common.by import By
+         from selenium.webdriver.support.ui import WebDriverWait
+         from selenium.webdriver.support import expected_conditions as EC
+ 
+         driver = webdriver.Firefox()
+         driver.get("http://somedomain/url_that_delays_loading")
+         try:
+           element = WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.ID, "myDynamicElement"))
+           )
+         finally:
+           driver.quit()
+      
+     c. Expected Conditions
+        There are some common conditions that are freq. used when automating web browsers so Selenium provides "convenience methods" so you don't have to code an expected condition class yourself.
+          title_is
+          title_contains
+          presence_of_element_located
+          visibility_of_element_located
+          visibility_of
+          presence_of_all_elements_located
+          text_to_be_present_in_element
+          text_to_be_present_in_element_value
+          frame_to_be_available_and_switch_to_it
+          invisibility_of_element_located
+          element_to_be_clickable
+          staleness_of
+          element_to_be_selected
+          element_located_to_be_selected
+          element_selection_state_to_be
+          element_located_selection_state_to_be
+          alert_is_present
+          
+          Use the above as such: 
+          
+          selenium.webdriver.support import expected_conditions as EC
+          
+          wait = WebDriverWait(driver, 10)
+          element = wait.until(EC.element_to_be_clickable((By.ID, 'someid')))
+          
+     d. Custom Wait Conditions
+        A custom wait condition can be created using a class with __call__ method which results False when the condition doesn't match
+   
+  2) Implicit Wait
+     Implicit waits tell WebDriver to poll the DOM for a certain amount of time when trying to find any element (or elements) not immediately available.
+     ------->"Document Object Model": The way in which HTML elements are structured
+     Default setting is zero.
+     Once set, the implicit wait is set for the life of the WebDriver object.
+     
+III. Page Objects
+a. Introduction
+
+   A page objects represents an area in the web application user interface that your test is interacting
+   Benefits of using page object pattern:
+      1) Creating reusable code that can be shared across multiple test cases
+      2) Reducing the amount of duplicated code
+      3) If the user interface changes, the fix needs changes in only one place
+   
+b. Page Object Basics
+   - should NOT make verifications or assertions except the crucial assertion that the page, and elements on the page, were loaded correctly
+      - the verification should be done while instantiating the page object
+   - will contain the representation of the page and the services the page provides, but no code related to what is being tested should be within the page object
+   - doesn't necessarily need to represent all parts of the page
+
+c. Using Page Objects in a Log-in Test
+   
+   Below there are three pieces of example code: 
+   a) example of a page object for a sign-in page
+   b) example of a page object for a home page
+   c) example of how to use both of the above page-objects in a Log-in page test
+   
+   ------
+   Example of a page object for a Sign-in page: 
+  
+    import org.openqa.selenium.By;
+    import org.openqa.selenium.WebDriver;
+
+    /**
+     * Page Object encapsulates the Sign-in page.
+     */
+    public class SignInPage {
+      protected WebDriver driver;
+
+      // <input name="user_name" type="text" value="">
+      private By usernameBy = By.name("user_name");
+      // <input name="password" type="password" value="">
+      private By passwordBy = By.name("password");
+      // <input name="sign_in" type="submit" value="SignIn">
+      private By signinBy = By.name("sign_in");
+
+      public SignInPage(WebDriver driver){
+        this.driver = driver;
+      }
+
+      /**
+        * Login as valid user
+        *
+        * @param userName
+        * @param password
+        * @return HomePage object
+        */
+      public HomePage loginValidUser(String userName, String password) {
+        driver.findElement(usernameBy).sendKeys(userName);
+        driver.findElement(passwordBy).sendKeys(password);
+        driver.findElement(signinBy).click();
+        return new HomePage(driver);
+      }
+    }
+---
+    Example of a page object for a Home page: 
+    
+    import org.openqa.selenium.By;
+    import org.openqa.selenium.WebDriver;
+
+    /**
+     * Page Object encapsulates the Home Page
+     */
+    public class HomePage {
+      protected WebDriver driver;
+
+      // <h1>Hello userName</h1>
+      private By messageBy = By.tagName("h1");
+
+      public HomePage(WebDriver driver){
+        this.driver = driver;
+        if (!driver.getTitle().equals("Home Page of logged in user")) {
+          throw new IllegalStateException("This is not Home Page of logged in user," +
+                " current page is: " + driver.getCurrentUrl());
+        }
+      }
+
+      /**
+        * Get message (h1 tag)
+        *
+        * @return String message text
+        */
+      public String getMessageText() {
+        return driver.findElement(messageBy).getText();
+      }
+
+      public HomePage manageProfile() {
+        // Page encapsulation to manage profile functionality
+        return new HomePage(driver);
+      }
+      /* More methods offering the services represented by Home Page
+      of Logged User. These methods in turn might return more Page Objects
+      for example click on Compose mail button could return ComposeMail class object */
+    }
+
+-----
+    So now, the Log-in test could use these 2 page objects as follows: 
+
+    public class TestLogin {
+
+      @Test
+      public void testLogin() {
+        SignInPage signInPage = new SignInPage(driver);
+        HomePage homePage = signInPage.loginValidUser("userName", "password");
+        assertThat(homePage.getMessageText(), is("Hello userName"));
+      }
+
+    }
+   
+     
+     
